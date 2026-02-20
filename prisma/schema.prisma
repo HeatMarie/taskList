@@ -1,0 +1,213 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Activity {
+  Activity_ID          Int                @id(map: "PK_Activity") @default(autoincrement())
+  Activity_Name        String?            @db.VarChar(1000)
+  Activity_Description String?            @db.VarChar(255)
+  Status_ID            Int
+  Created_Datetime     DateTime?
+  Updated_Datetime     DateTime?
+  Created_By           Int
+  Updated_By           Int?
+  Status_Code          Status_Code        @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Activity_Status")
+  Activity_Log         Activity_Log[]
+  Process_Activities   Process_Activity[]
+}
+
+model Activity_Log {
+  Activity_Log_ID     Int               @id(map: "PK_Activity_Log") @default(autoincrement())
+  Process_Log_ID      Int?
+  Process_Activity_ID Int?
+  Room_ID             Int?
+  Activity_ID         Int?
+  Status_ID           Int
+  Start_Datetime      DateTime?
+  End_Datetime        DateTime?
+  Created_Datetime    DateTime?
+  Updated_Datetime    DateTime?
+  Created_By          Int
+  Updated_By          Int?
+  Process_Order       Float?
+  Urgent_Activity_ID  Int?
+  Activity            Activity?         @relation(fields: [Activity_ID], references: [Activity_ID], onDelete: Cascade, onUpdate: NoAction, map: "FK_Activity_Log_Activity")
+  Process_Activity    Process_Activity? @relation(fields: [Process_Activity_ID], references: [Process_Activity_ID], onDelete: Cascade, onUpdate: NoAction, map: "FK_Activity_Log_Process_Activity")
+  Process_Log         Process_Log?      @relation(fields: [Process_Log_ID], references: [Process_Log_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Activity_Log_Process_Log")
+  Room                Room?             @relation(fields: [Room_ID], references: [Room_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Activity_Log_Room")
+  Status_Code         Status_Code       @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Activity_Log_Status")
+  Urgent_Activity     Urgent_Activity?  @relation(fields: [Urgent_Activity_ID], references: [Urgent_Activity_ID], onDelete: Cascade, onUpdate: NoAction, map: "FK_Activity_Log_Urgent_Activity")
+  Notes               Notes[]
+}
+
+model Notes {
+  Note_ID          Int            @id(map: "PK_Notes") @default(autoincrement())
+  Process_Log_ID   Int?
+  Room_ID          Int?
+  Activity_Log_ID  Int?
+  Status_ID        Int
+  Created_Datetime DateTime?
+  Updated_Datetime DateTime?
+  Created_By       Int
+  Updated_By       Int?
+  Note_Text        String?        @db.NVarChar(Max)
+  Parent_Note_ID   Int?
+  Photo_ID         Int?
+  Announcement_ID  Int?
+  Activity_Log     Activity_Log?  @relation(fields: [Activity_Log_ID], references: [Activity_Log_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Notes_Activity_Log")
+  Announcements    Announcements? @relation(fields: [Announcement_ID], references: [Announcement_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Notes_Announcements")
+  Photo            Photo?         @relation(fields: [Photo_ID], references: [Photo_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Notes_Photo")
+  Process_Log      Process_Log?   @relation(fields: [Process_Log_ID], references: [Process_Log_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Notes_Process_Log")
+  Room             Room?          @relation(fields: [Room_ID], references: [Room_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Notes_Room")
+  Status_Code      Status_Code    @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Notes_Status")
+  Notes_Children   Notes[]        @relation("NoteChildren")
+  Parent_Note      Notes?         @relation("NoteChildren", fields: [Parent_Note_ID], references: [Note_ID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Process {
+  Process_ID          Int                @id(map: "PK_Process") @default(autoincrement())
+  Process_Name        String             @db.VarChar(100)
+  Process_Description String?            @db.VarChar(255)
+  Status_ID           Int
+  Created_Datetime    DateTime?
+  Updated_Datetime    DateTime?
+  Created_By          Int
+  Updated_By          Int?
+  Status_Code         Status_Code        @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Process_Status")
+  Process_Activity    Process_Activity[]
+  Process_Log         Process_Log[]
+}
+
+model Process_Activity {
+  Process_Activity_ID Int            @id(map: "PK_Session") @default(autoincrement())
+  Process_ID          Int
+  Room_ID             Int
+  Activity_ID         Int
+  Status_ID           Int
+  Created_Datetime    DateTime?
+  Updated_Datetime    DateTime?
+  Created_By          Int
+  Updated_By          Int?
+  Process_Order       Float?
+  Activity_Log        Activity_Log[]
+  Process             Process        @relation(fields: [Process_ID], references: [Process_ID], onUpdate: NoAction, map: "FK_Process_Activity_Process")
+  Room                Room           @relation(fields: [Room_ID], references: [Room_ID], onUpdate: NoAction, map: "FK_Process_Activity_Room")
+  Status_Code         Status_Code    @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Process_Activity_Status")
+  Activity            Activity       @relation(fields: [Activity_ID], references: [Activity_ID], onUpdate: NoAction, map: "FK_Process_Activity_Activity")
+}
+
+model Process_Log {
+  Process_Log_ID   Int            @id(map: "PK_Process_Log") @default(autoincrement())
+  Process_ID       Int
+  Status_ID        Int
+  Start_Datetime   DateTime?
+  End_Datetime     DateTime?
+  Created_Datetime DateTime?
+  Updated_Datetime DateTime?
+  Created_By       Int
+  Updated_By       Int?
+  Session_Name     String?        @db.VarChar(50)
+  Activity_Log     Activity_Log[]
+  Notes            Notes[]
+  Process          Process        @relation(fields: [Process_ID], references: [Process_ID], onUpdate: NoAction, map: "FK_Process_Log_Process")
+  Status_Code      Status_Code    @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Process_Log_Status")
+}
+
+model Room {
+  Room_ID          Int                @id(map: "PK_Room") @default(autoincrement())
+  Room_Name        String             @db.VarChar(100)
+  Room_Description String?            @db.VarChar(255)
+  Room_Area        String?            @db.VarChar(100)
+  Status_ID        Int
+  Created_Datetime DateTime?
+  Updated_Datetime DateTime?
+  Created_By       Int
+  Updated_By       Int?
+  Activity_Log     Activity_Log[]
+  Notes            Notes[]
+  Process_Activity Process_Activity[]
+  Status_Code      Status_Code        @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Room_Status")
+}
+
+model Status_Code {
+  Status_ID          Int                @id(map: "PK_Status_Code") @default(autoincrement())
+  Status_Name        String             @db.VarChar(100)
+  Status_Description String?            @db.VarChar(255)
+  Is_Active          Boolean
+  Created_Datetime   DateTime?
+  Updated_Datetime   DateTime?
+  Created_By         Int
+  Updated_By         Int?
+  Activity           Activity[]
+  Activity_Log       Activity_Log[]
+  Announcements      Announcements[]
+  Notes              Notes[]
+  Photo              Photo[]
+  Process            Process[]
+  Process_Activity   Process_Activity[]
+  Process_Log        Process_Log[]
+  Room               Room[]
+  Urgent_Activity    Urgent_Activity[]
+}
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B6153CD7D70") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}
+
+model Announcements {
+  Announcement_ID        Int                      @id(map: "PK__Announce__853AB7CF1DD3591B") @default(autoincrement())
+  Announcement_Text      String?                  @db.NVarChar(Max)
+  Room_ID                Int?
+  Created_By             Int?
+  Updated_By             Int?
+  Created_Datetime       DateTime?
+  Updated_Datetime       DateTime?
+  Status_ID              Int?
+  Process_Log_ID         Int?
+  Announcement_Assignees Announcement_Assignees[]
+  Status_Code            Status_Code?             @relation(fields: [Status_ID], references: [Status_ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Announcement_Status")
+  Notes                  Notes[]
+}
+
+model Announcement_Assignees {
+  Announcement_ID          Int
+  Assignee_ID              Int
+  Announcement_Assignee_ID Int           @id(map: "PK_Announcement_Assignee_ID") @default(autoincrement())
+  Announcements            Announcements @relation(fields: [Announcement_ID], references: [Announcement_ID], onUpdate: NoAction, map: "FK__Announcem__Annou__5B0E7E4A")
+}
+
+model Photo {
+  Photo_ID         Int         @id(map: "PK_Photo") @default(autoincrement())
+  File_Path        String?     @db.NVarChar(Max)
+  Status_ID        Int
+  Created_Datetime DateTime?
+  Updated_Datetime DateTime?
+  Created_By       Int
+  Updated_By       Int?
+  Notes            Notes[]
+  Status_Code      Status_Code @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Photo_Status")
+}
+
+model Urgent_Activity {
+  Urgent_Activity_ID Int            @id(map: "PK_Urgent_Activity") @default(autoincrement())
+  Description        String?        @db.NVarChar(Max)
+  Status_ID          Int
+  Created_Datetime   DateTime?
+  Updated_Datetime   DateTime?
+  Created_By         Int
+  Updated_By         Int?
+  Activity_Log       Activity_Log[]
+  Status_Code        Status_Code    @relation(fields: [Status_ID], references: [Status_ID], onUpdate: NoAction, map: "FK_Urgent_Activity_Status")
+}
