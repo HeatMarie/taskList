@@ -13,6 +13,18 @@ import { EditActivityDialog } from "@/components/activities/EditActivityDialog"
 import { DeleteActivityDialog } from "@/components/activities/DeleteActivityDialog"
 import type { Activity, EditTab, Process, ProcessLink, StatusName } from "@/components/activities/types"
 
+// Shared placeholder Status_Code for optimistic inserts
+const ACTIVE_STATUS_CODE = {
+  Status_ID: 1,
+  Status_Name: "Active",
+  Status_Description: null,
+  Is_Active: true,
+  Created_Datetime: null,
+  Updated_Datetime: null,
+  Created_By: 0,
+  Updated_By: null,
+} as const
+
 interface ActivitiesClientProps {
   initialActivities: Activity[]
   processes: Process[]
@@ -40,8 +52,8 @@ export function ActivitiesClient({ initialActivities, processes }: ActivitiesCli
     statusFilter,
   })
 
-  const totalActive = activities.filter((a) => a.Status_Name === "Active").length
-  const totalInactive = activities.filter((a) => a.Status_Name === "Inactive").length
+  const totalActive = activities.filter((a) => a.Status_Code.Status_Name === "Active").length
+  const totalInactive = activities.filter((a) => a.Status_Code.Status_Name === "Inactive").length
   const hasFilters = !!(searchQuery || processFilter !== "all" || statusFilter !== "active")
 
   // ── Dialog helpers ────────────────────────────────────────────────────────────
@@ -69,18 +81,48 @@ export function ActivitiesClient({ initialActivities, processes }: ActivitiesCli
     const newActivity: Activity = {
       Activity_ID: Date.now(),
       Activity_Name: name,
-      Activity_Description: description || undefined,
+      Activity_Description: description || null,
       Status_ID: 1,
-      Status_Name: "Active",
-      ProcessLinks: process
+      Created_Datetime: null,
+      Updated_Datetime: null,
+      Created_By: 0,
+      Updated_By: null,
+      Status_Code: ACTIVE_STATUS_CODE,
+      Process_Activities: process
         ? [
             {
               Process_Activity_ID: Date.now() + 1,
               Process_ID: process.Process_ID,
-              Process_Name: process.Process_Name,
               Room_ID: 1,
-              Room_Name: "TBD",
-              Status_Name: "Active",
+              Activity_ID: Date.now(),
+              Status_ID: 1,
+              Created_Datetime: null,
+              Updated_Datetime: null,
+              Created_By: 0,
+              Updated_By: null,
+              Process_Order: null,
+              Process: {
+                Process_ID: process.Process_ID,
+                Process_Name: process.Process_Name,
+                Process_Description: process.Process_Description ?? null,
+                Status_ID: process.Status_ID,
+                Created_Datetime: null,
+                Updated_Datetime: null,
+                Created_By: 0,
+                Updated_By: null,
+              },
+              Room: {
+                Room_ID: 1,
+                Room_Name: "TBD",
+                Room_Description: null,
+                Room_Area: null,
+                Status_ID: 1,
+                Created_Datetime: null,
+                Updated_Datetime: null,
+                Created_By: 0,
+                Updated_By: null,
+              },
+              Status_Code: ACTIVE_STATUS_CODE,
             },
           ]
         : [],
@@ -94,13 +136,13 @@ export function ActivitiesClient({ initialActivities, processes }: ActivitiesCli
         if (a.Activity_ID !== id) return a
         const newStatusId = data.Status_ID ?? a.Status_ID
         const newStatusName: StatusName =
-          newStatusId === 1 ? "Active" : newStatusId === 2 ? "Inactive" : a.Status_Name
+          newStatusId === 1 ? "Active" : newStatusId === 2 ? "Inactive" : a.Status_Code.Status_Name as StatusName
         return {
           ...a,
           Activity_Name: data.Activity_Name ?? a.Activity_Name,
-          Activity_Description: data.Activity_Description,
+          Activity_Description: data.Activity_Description ?? a.Activity_Description,
           Status_ID: newStatusId,
-          Status_Name: newStatusName,
+          Status_Code: { ...a.Status_Code, Status_Name: newStatusName },
         }
       })
     )
@@ -110,7 +152,7 @@ export function ActivitiesClient({ initialActivities, processes }: ActivitiesCli
     setActivities((prev) =>
       prev.map((a) =>
         a.Activity_ID === activity.Activity_ID
-          ? { ...a, Status_ID: 3, Status_Name: "Deleted" }
+          ? { ...a, Status_ID: 3, Status_Code: { ...a.Status_Code, Status_Name: "Deleted" } }
           : a
       )
     )
@@ -121,18 +163,18 @@ export function ActivitiesClient({ initialActivities, processes }: ActivitiesCli
     const updateLinks = (links: ProcessLink[]) =>
       links.map((l) =>
         l.Process_Activity_ID === processActivityId
-          ? { ...l, Status_Name: "Deleted" as StatusName }
+          ? { ...l, Status_Code: { ...l.Status_Code, Status_Name: "Deleted" } }
           : l
       )
 
     setActivities((prev) =>
       prev.map((a) =>
-        a.Activity_ID === activityId ? { ...a, ProcessLinks: updateLinks(a.ProcessLinks) } : a
+        a.Activity_ID === activityId ? { ...a, Process_Activities: updateLinks(a.Process_Activities) } : a
       )
     )
     setEditActivity((prev) =>
       prev?.Activity_ID === activityId
-        ? { ...prev, ProcessLinks: updateLinks(prev.ProcessLinks) }
+        ? { ...prev, Process_Activities: updateLinks(prev.Process_Activities) }
         : prev
     )
   }
@@ -144,33 +186,59 @@ export function ActivitiesClient({ initialActivities, processes }: ActivitiesCli
     const newLink: ProcessLink = {
       Process_Activity_ID: Date.now(),
       Process_ID: processId,
-      Process_Name: process.Process_Name,
       Room_ID: 1,
-      Room_Name: "TBD",
-      Status_Name: "Active",
+      Activity_ID: activityId,
+      Status_ID: 1,
+      Created_Datetime: null,
+      Updated_Datetime: null,
+      Created_By: 0,
+      Updated_By: null,
+      Process_Order: null,
+      Process: {
+        Process_ID: processId,
+        Process_Name: process.Process_Name,
+        Process_Description: process.Process_Description ?? null,
+        Status_ID: process.Status_ID,
+        Created_Datetime: null,
+        Updated_Datetime: null,
+        Created_By: 0,
+        Updated_By: null,
+      },
+      Room: {
+        Room_ID: 1,
+        Room_Name: "TBD",
+        Room_Description: null,
+        Room_Area: null,
+        Status_ID: 1,
+        Created_Datetime: null,
+        Updated_Datetime: null,
+        Created_By: 0,
+        Updated_By: null,
+      },
+      Status_Code: ACTIVE_STATUS_CODE,
     }
 
     setActivities((prev) =>
       prev.map((a) =>
         a.Activity_ID === activityId
-          ? { ...a, ProcessLinks: [...a.ProcessLinks, newLink] }
+          ? { ...a, Process_Activities: [...a.Process_Activities, newLink] }
           : a
       )
     )
     setEditActivity((prev) =>
       prev?.Activity_ID === activityId
-        ? { ...prev, ProcessLinks: [...prev.ProcessLinks, newLink] }
+        ? { ...prev, Process_Activities: [...prev.Process_Activities, newLink] }
         : prev
     )
   }
 
   const handleToggleStatus = (activity: Activity) => {
-    const newStatus: StatusName = activity.Status_Name === "Active" ? "Inactive" : "Active"
+    const newStatus: StatusName = activity.Status_Code.Status_Name === "Active" ? "Inactive" : "Active"
     const newId = newStatus === "Active" ? 1 : 2
     setActivities((prev) =>
       prev.map((a) =>
         a.Activity_ID === activity.Activity_ID
-          ? { ...a, Status_ID: newId, Status_Name: newStatus }
+          ? { ...a, Status_ID: newId, Status_Code: { ...a.Status_Code, Status_Name: newStatus } }
           : a
       )
     )

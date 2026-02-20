@@ -30,7 +30,7 @@ export function ProcessAssociations({
 }: ProcessAssociationsProps) {
   const [addProcessId, setAddProcessId] = useState("")
 
-  const activeLinks = activity.ProcessLinks.filter((l) => l.Status_Name === "Active")
+  const activeLinks = activity.Process_Activities.filter((l) => l.Status_Code.Status_Name === "Active")
   const linkedProcessIds = new Set(activeLinks.map((l) => l.Process_ID))
   const availableProcesses = processes.filter((p) => !linkedProcessIds.has(p.Process_ID))
 
@@ -99,13 +99,13 @@ function ProcessLinkRow({
       <div className="flex items-center gap-2 min-w-0">
         <Badge
           variant="outline"
-          className={cn("text-xs font-medium shrink-0", getProcessColor(link.Process_Name))}
+          className={cn("text-xs font-medium shrink-0", getProcessColor(link.Process.Process_Name))}
         >
-          {link.Process_Name}
+          {link.Process.Process_Name}
         </Badge>
-        {link.Room_Name && (
+        {link.Room.Room_Name && (
           <span className="text-xs text-muted-foreground truncate">
-            {link.Room_Name}
+            {link.Room.Room_Name}
             {link.Process_Order != null && ` · Step ${link.Process_Order}`}
           </span>
         )}

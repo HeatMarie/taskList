@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ProcessAssociations } from "./ProcessAssociations"
-import type { Activity, EditTab, Process, StatusName } from "./types"
+import type { Activity, EditTab, Process } from "./types"
 
 interface EditActivityDialogProps {
   activity: Activity | null
@@ -69,7 +69,7 @@ export function EditActivityDialog({
 
   if (!activity) return null
 
-  const activeProcessLinks = activity.ProcessLinks.filter((l) => l.Status_Name === "Active")
+  const activeProcessLinks = activity.Process_Activities.filter((l) => l.Status_Code.Status_Name === "Active")
 
   const isDirty =
     name !== activity.Activity_Name ||
@@ -79,7 +79,7 @@ export function EditActivityDialog({
   const handleSave = () => {
     onSave(activity.Activity_ID, {
       Activity_Name: name,
-      Activity_Description: description || undefined,
+      Activity_Description: description || null,
       Status_ID: statusId,
     })
     onOpenChange(false)

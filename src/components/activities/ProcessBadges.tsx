@@ -9,7 +9,7 @@ interface ProcessBadgesProps {
 }
 
 export function ProcessBadges({ links, maxVisible = 2 }: ProcessBadgesProps) {
-  const active = links.filter((l) => l.Status_Name === "Active")
+  const active = links.filter((l) => l.Status_Code.Status_Name === "Active")
 
   if (active.length === 0) {
     return <span className="text-muted-foreground text-sm">—</span>
@@ -17,7 +17,7 @@ export function ProcessBadges({ links, maxVisible = 2 }: ProcessBadgesProps) {
 
   const visible = active.slice(0, maxVisible)
   const overflow = active.length - maxVisible
-  const overflowNames = active.slice(maxVisible).map((l) => l.Process_Name).join(", ")
+  const overflowNames = active.slice(maxVisible).map((l) => l.Process.Process_Name).join(", ")
 
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -25,10 +25,10 @@ export function ProcessBadges({ links, maxVisible = 2 }: ProcessBadgesProps) {
         <Badge
           key={link.Process_Activity_ID}
           variant="outline"
-          className={cn("text-xs font-medium cursor-default", getProcessColor(link.Process_Name))}
-          title={link.Room_Name ? `${link.Process_Name} · ${link.Room_Name}` : link.Process_Name}
+          className={cn("text-xs font-medium cursor-default", getProcessColor(link.Process.Process_Name))}
+          title={link.Room.Room_Name ? `${link.Process.Process_Name} · ${link.Room.Room_Name}` : link.Process.Process_Name}
         >
-          {link.Process_Name}
+          {link.Process.Process_Name}
         </Badge>
       ))}
       {overflow > 0 && (

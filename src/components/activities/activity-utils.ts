@@ -9,7 +9,7 @@ export function simulateSimilaritySearch(
   const words = lower.split(" ").filter((w) => w.length > 3)
 
   return activities
-    .filter((a) => a.Status_Name !== "Deleted")
+    .filter((a) => a.Status_Code.Status_Name !== "Deleted")
     .map((a) => {
       const aLower = a.Activity_Name?.toLowerCase() ?? ""
       let score = 0
@@ -49,14 +49,14 @@ export function filterActivities(
   }
 ): Activity[] {
   return activities.filter((a) => {
-    if (a.Status_Name === "Deleted") return false
-    if (statusFilter === "active" && a.Status_Name !== "Active") return false
-    if (statusFilter === "inactive" && a.Status_Name !== "Inactive") return false
+    if (a.Status_Code.Status_Name === "Deleted") return false
+    if (statusFilter === "active" && a.Status_Code.Status_Name !== "Active") return false
+    if (statusFilter === "inactive" && a.Status_Code.Status_Name !== "Inactive") return false
 
     if (processFilter !== "all") {
       const pid = parseInt(processFilter)
-      const hasProcess = a.ProcessLinks.some(
-        (l) => l.Process_ID === pid && l.Status_Name === "Active"
+      const hasProcess = a.Process_Activities.some(
+        (l) => l.Process_ID === pid && l.Status_Code.Status_Name === "Active"
       )
       if (!hasProcess) return false
     }
@@ -66,7 +66,7 @@ export function filterActivities(
       return (
         a.Activity_Name?.toLowerCase().includes(q) ||
         a.Activity_Description?.toLowerCase().includes(q) ||
-        a.ProcessLinks.some((l) => l.Process_Name.toLowerCase().includes(q))
+        a.Process_Activities.some((l) => l.Process.Process_Name.toLowerCase().includes(q))
       )
     }
 

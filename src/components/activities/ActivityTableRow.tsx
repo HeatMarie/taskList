@@ -30,7 +30,7 @@ export function ActivityTableRow({
   onToggleStatus,
   onDelete,
 }: ActivityTableRowProps) {
-  const isActive = activity.Status_Name === "Active"
+  const isActive = activity.Status_Code.Status_Name === "Active"
 
   return (
     <TableRow className={cn(!isActive && "opacity-60")}>
@@ -67,7 +67,7 @@ export function ActivityTableRow({
 
       {/* Processes */}
       <TableCell>
-        <ProcessBadges links={activity.ProcessLinks} />
+        <ProcessBadges links={activity.Process_Activities} />
       </TableCell>
 
       {/* Active toggle */}
