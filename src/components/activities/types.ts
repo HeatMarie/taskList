@@ -1,35 +1,24 @@
+import type { Prisma } from "@prisma/client"
+export type { Process } from "@prisma/client"
+
 export type StatusName = "Active" | "Inactive" | "Deleted"
 
-export interface Process {
-  Process_ID: number
-  Process_Name: string
-  Process_Description?: string
-}
+export type Activity = Prisma.ActivityGetPayload<{
+  include: {
+    Status_Code: true
+    Process_Activities: {
+      include: {
+        Process: true
+        Room: true
+        Status_Code: true
+      }
+    }
+  }
+}>
 
-export interface ProcessLink {
-  Process_Activity_ID: number
-  Process_ID: number
-  Process_Name: string
-  Room_ID: number
-  Room_Name: string
-  Process_Order?: number
-  Status_Name: StatusName
-}
+// A single Process_Activity row with its nested includes
+export type ProcessLink = Activity["Process_Activities"][number]
 
-export interface Activity {
-  Activity_ID: number
-  Activity_Name: string
-  Activity_Description?: string
-  Status_ID: number
-  Status_Name: StatusName
-  ProcessLinks: ProcessLink[]
-}
-
-export interface SimilarActivity {
-  Activity_ID: number
-  Activity_Name: string
-  Activity_Description?: string
-  similarity: number
-}
+export type SimilarActivity = Activity & { similarity: number }
 
 export type EditTab = "details" | "processes"
